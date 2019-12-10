@@ -1,44 +1,38 @@
-#include "Block.h"
 #include "pch.h"
-#include "Blockchain.h"
 
 
-Block::Block(uint32_t nIndexIn, const string &sDataIn) : _nIndex(nIndexIn), _sData(sDataIn) 
+Block::Block(uint32_t nIndexIn, vector<Transaction> &sDataIn) : _nIndex(nIndexIn) 
 {
+	for (int i = 0; i < sDataIn.size(); i++)
+	{
+		Info_.push_back(sDataIn[i]);
+	}
 	_nNonce = -1;
 	_tTime = time(nullptr);
-	Info_.reserve(100);
 }
 
 string Block::GetHash() { return _sHash; }
 
-void Block::MineBlock(uint32_t nDifficulty, vector<Transaction>& temp)
+void Block::MineBlock(uint32_t nDifficulty)
 {
-	char cstr[2 + 1]; //nDifficulty
-	for (uint32_t i = 0; i < nDifficulty; ++i) 
-	{
-		cstr[i] = '0';
-	}
-	cstr[nDifficulty] = '\0';
-
-	string str(cstr);
-
-	do {
-		_nNonce++;
-		_sHash = _CalculateHash();
-	} while (_sHash.substr(0, nDifficulty) != str);
-	Info_ = temp;
-	cout << "Block mined: " << _sHash << endl;
+	_nNonce++;
+	_sHash = _CalculateHash();
 }
 
 
 inline string Block::_CalculateHash() const 
 {
 	stringstream ss;
-	ss << _nIndex << _tTime << _sData << _nNonce << sPrevHash;
+	ss << _nIndex << _tTime;
+	
+	for (int i = 0; i < Info_.size(); i++)
+	{
+		ss << Info_[i].GetFrom() << Info_[i].GetTo() << Info_[i].GetAmount();
+	}
 
-	return hash(ss.str());
-	//return sha256(ss.str());
+	ss << _nNonce << sPrevHash;
+	//return hash(ss.str());
+	return sha256(ss.str());
 }
 
 string hash(string str)
@@ -46,12 +40,19 @@ string hash(string str)
 	unsigned int hash = 0;
 	stringstream stream;
 
-	for (int i = 0; i < str.length(); i++)
+	unsigned int pt1 = 0x811C9DC5;
+	unsigned int pt2 = 1315423911;
+	unsigned int pt3 = 5381;
+
+	for (size_t i = 0; i < str.length(); i++)
 	{
-		hash = (str[i]) + (hash << 5) + (hash << 15) - hash;
+		pt1 ^= ((i & 1) == 0) ? ((pt1 << 7) ^ str[i] * (pt1 >> 3)) : (~((pt1 << 11) + (str[i] ^ (pt1 >> 5)) * 63689));
+		pt2 ^= ((pt1 << 5) + str[i] + (pt1 >> 2));
+		pt3 = ((pt2 << 5) + pt2) + str[i];
+
 	}
 
-	stream << hex << hash;
+	stream << hex << pt1 << hex << pt2 << hex << pt3;
 	string output(stream.str()), out;
 	int x = 0;
 	for (int i = 0; i < length; i++)
@@ -67,25 +68,6 @@ string hash(string str)
 			out = output[x];
 		}
 	}
-	return out;
+	return output;
 }
 
-/*string write_hash(string str)
-{
-	int x = 0;
-	string output;
-	for (int i = 0; i < length; i++)
-	{
-		if (x < hash(str).length())
-		{
-			output = hash(str)[x];
-			x++;
-		}
-		else
-		{
-			x = 0;
-			output = hash(str)[x];
-		}
-	}
-	return output;
-}*/

@@ -1,18 +1,21 @@
 #include "pch.h"
-#include "Block.h"
-#include "Blockchain.h"
-#include "transaction.h"
 
 Blockchain::Blockchain()
 {
-	_vChain.emplace_back(Block(0, "Genesis Block"));
-	_nDifficulty = 2;
+	vector<Transaction> Genesis;
+
+	for (int i = 0; i < 100; i++)
+	{
+		Genesis.push_back(Transaction());
+		Genesis[i].SetTransaction(1, "Genesis", "Genesis");
+	}
+	_vChain.emplace_back(Block(1, Genesis));
+	_nDifficulty = 3;
 }
 
-void Blockchain::AddBlock(Block bNew, vector<Transaction>& temp)
+void Blockchain::AddBlock(Block bNew)
 {
 	bNew.sPrevHash = _GetLastBlock().GetHash();
-	bNew.MineBlock(_nDifficulty, temp);
 	_vChain.push_back(bNew);
 }
 

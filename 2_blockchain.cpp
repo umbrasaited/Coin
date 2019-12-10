@@ -1,8 +1,4 @@
 #include "pch.h"
-#include "Block.h"
-#include "Blockchain.h"
-#include "transaction.h"
-#include "user.h"
 
 
 int main()
@@ -10,17 +6,33 @@ int main()
 	Blockchain FBlock = Blockchain();
 	vector <User> users;
 	vector <Transaction> trans;
+	vector <Transaction> chosen;
 	reading(users);
+	size_t MaxNonce = 100;
+	uint32_t index = 2;
+	bool found = false;
 
-	int start = 0, end = 100;
-	while (end <= 10000)
+
+	making(users, trans);
+
+	while (trans.size() > 0)
 	{
-		making(users, trans);
-		FBlock.AddBlock(Block(1, "Block 1 Data"), trans);
-		start += 100;
-		end += 100;
-		trans.clear();
+		for (int i = 0; i < 5; i++)
+		{
+			Creating_Block(trans, users, FBlock, index, found, MaxNonce, i);
+			if (found)
+			{
+				index++;
+				break;
+			}
+			else if (!found)
+			{
+				cout << "Mining of block " << i + 1 << " was unsuccsesfull" << endl;
+				MaxNonce += 100;
+			}
+		}
+		found = false;
 	}
 
-	return 0;
+	//return 0;
 }

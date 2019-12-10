@@ -12,16 +12,20 @@
 
 using std::endl;
 using std::cout;
+using std::default_random_engine;
 using std::hex;
+using std::ifstream;
 using std::istringstream;
 using std::ofstream;
+using std::random_device;
+using std::size_t;
 using std::string;
 using std::stringstream;
+using std::uniform_int_distribution;
 using std::vector;
 
-const int length = 8;
+const int length = 21;
 string hash(string str);
-string write_hash(string str);
 
 class Transaction
 {
@@ -31,8 +35,10 @@ public:
 	int GetAmount() const { return amount_; }
 	string GetFrom() const { return from_; }
 	string GetTo() const { return to_; }
+	string GetID() const { return ID_; }
 
 private:
+	string ID_;
 	string from_;
 	string to_;
 	int amount_;
@@ -43,21 +49,14 @@ class Block
 {
 public:
 	string sPrevHash;
-	Block(uint32_t nIndexIn, const string &sDataIn);
+	Block(uint32_t nIndexIn, vector<Transaction> &sDataIn);
 	string GetHash();
-	void MineBlock(uint32_t Difficulty, vector<Transaction>& temp);
-	void AddInfo(int start, int end, vector <Transaction> Trans)
-	{
-		for (int i = start; i < end; i++)
-		{
-			Info_.push_back(Trans[i]);
-		}
-	}
+	int64_t GetNonce() const { return _nNonce; }
+	void MineBlock(uint32_t Difficulty);
 
 private:
 	uint32_t _nIndex;
 	int64_t _nNonce;
-	string _sData;
 	string _sHash;
 	time_t _tTime;
 	vector <Transaction> Info_;
@@ -68,10 +67,11 @@ class Blockchain
 {
 public:
 	Blockchain();
-	void AddBlock(Block bNew, vector<Transaction>& temp);
+	void AddBlock(Block bNew);
+	uint32_t GetDiff() const { return _nDifficulty; }
 
 private:
-	uint32_t _nDifficulty;
+	uint32_t _nDifficulty = 2;
 	vector<Block> _vChain;
 	Block _GetLastBlock() const;
 };
@@ -89,7 +89,6 @@ public:
 
 private:
 	string name_;
-	//string surname_;
 	string public_key;
 	int f_amount_;
 
@@ -98,4 +97,6 @@ private:
 void making(vector <User>& vartotojai, vector <Transaction> trans);
 void reading(vector <User> &Users);
 void Trans(User x, User y, int amount, vector <Transaction>& AllTrans);
+void Creating_Block(vector<Transaction>& trans, vector<User>& users, Blockchain& FBlock, uint32_t& index, bool& found, size_t& MaxNonce, int i);
+string sha256(string input);
 #endif 

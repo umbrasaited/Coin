@@ -23,3 +23,8 @@ Block Blockchain::_GetLastBlock() const
 {
 	return _vChain.back();
 }
+
+Block Blockchain::_GetAnyBlock(int n) const
+{
+	if (_vChain.size() > n) return _vChain[n];
+}

@@ -59,8 +59,10 @@ private:
 	int64_t _nNonce;
 	string _sHash;
 	time_t _tTime;
-	vector <Transaction> Info_;
+	vector <Transaction> _Info;
 	string _CalculateHash() const;
+	string _mMerkle;
+	void Merkle();
 };
 
 class Blockchain
@@ -71,9 +73,10 @@ public:
 	uint32_t GetDiff() const { return _nDifficulty; }
 
 private:
-	uint32_t _nDifficulty = 2;
+	uint32_t _nDifficulty;
 	vector<Block> _vChain;
 	Block _GetLastBlock() const;
+	Block _GetAnyBlock(int n) const;
 };
 
 

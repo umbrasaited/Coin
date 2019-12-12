@@ -5,10 +5,11 @@ Block::Block(uint32_t nIndexIn, vector<Transaction> &sDataIn) : _nIndex(nIndexIn
 {
 	for (int i = 0; i < sDataIn.size(); i++)
 	{
-		Info_.push_back(sDataIn[i]);
+		_Info.push_back(sDataIn[i]);
 	}
 	_nNonce = -1;
 	_tTime = time(nullptr);
+	Merkle();
 }
 
 string Block::GetHash() { return _sHash; }
@@ -25,9 +26,9 @@ inline string Block::_CalculateHash() const
 	stringstream ss;
 	ss << _nIndex << _tTime;
 	
-	for (int i = 0; i < Info_.size(); i++)
+	for (int i = 0; i < _Info.size(); i++)
 	{
-		ss << Info_[i].GetFrom() << Info_[i].GetTo() << Info_[i].GetAmount();
+		ss << _Info[i].GetFrom() << _Info[i].GetTo() << _Info[i].GetAmount();
 	}
 
 	ss << _nNonce << sPrevHash;
@@ -71,3 +72,43 @@ string hash(string str)
 	return output;
 }
 
+void Block::Merkle()
+{
+	vector<string> merkle;
+
+	for (int i = 0; i < _Info.size(); i++)
+	{
+		merkle.push_back(_Info[i].GetID());
+	}
+
+	if (merkle.size() == 0)
+	{
+		_mMerkle = "0000000000000000000000000000000000000000000000000000000000000000";
+		return;
+	}
+
+	if (merkle.size() == 1)
+	{
+		_mMerkle = merkle[0];
+		return;
+	}
+
+	while (merkle.size() > 1)
+	{
+		if (merkle.size() % 2 != 0)
+			merkle.push_back(merkle.back());
+
+		vector<string> new_merkle;
+
+		for (auto it = merkle.begin(); it != merkle.end(); it += 2)
+		{
+			string concat = (*it) + (*(it + 1));
+			string hash = sha256(concat);
+			new_merkle.push_back(hash);
+		}
+
+		merkle = new_merkle;
+	}
+	_mMerkle = merkle[0];
+	return;
+}
